@@ -1,4 +1,4 @@
-import React, { useState, useRef, useCallback,Image,View  } from "react";
+import React, { useState, useRef, useCallback, useEffect } from "react";
 import ReactFlow, {
   ReactFlowProvider,
   addEdge,
@@ -9,50 +9,29 @@ import ReactFlow, {
   updateEdge,
   applyNodeChanges,
   applyEdgeChanges,
+  useReactFlow,
 } from "react-flow-renderer";
-
 import "./index.css";
 import { ToastContainer, toast } from "react-toastify";
 import "react-toastify/dist/ReactToastify.css";
-import { useToasts } from 'react-toast-notifications'
-
+import { useToasts } from "react-toast-notifications";
+import { IconContext } from "react-icons";
+import { VscSettings } from "react-icons/vsc";
+import { GiCancel } from "react-icons/gi";
+import { Modal, Button, ModalHeader } from "react-bootstrap";
+import "bootstrap/dist/css/bootstrap.min.css";
 let id = 0;
 const getId = () => `new${id++}`;
 const initialNodes = [];
-let ss = 0;
 const initialEdges = [];
-let locS = false;
-console.log(JSON.parse(localStorage.getItem("contentsN")).length);
-if (JSON.parse(localStorage.getItem("contentsN")).length != 0) {
-  locS = true;
-}
 
 const MermaidFlow = () => {
   const notify = (a) => toast.success(a);
+  const [lgShow, setLgShow] = useState(false);
   const reactFlowWrapper = useRef(null);
   const [nodes, setNodes] = useNodesState(initialNodes);
   const [edges, setEdges] = useEdgesState(initialEdges);
   const [objectEdit, setObjectEdit] = useState({});
-
-  if (ss == 0) {
-    async function ff() {
-      ss++;
-
-      var x = localStorage.getItem("contentsN");
-      let a = JSON.parse(x);
-      console.log(a);
-      a.forEach((t) => {
-        console.log(JSON.stringify(t));
-        setNodes((nds) => nds.concat(t));
-        console.log(nodes);
-      });
-      await setNodes((nds) => nds.concat(a));
-      setNodes(nodes.concat(a));
-      console.log(nodes);
-    }
-    ff();
-  }
-
   const onNodesChange = useCallback(
     (changes) => setNodes((ns) => applyNodeChanges(changes, ns)),
     []
@@ -65,11 +44,9 @@ const MermaidFlow = () => {
   const onPaneClick = () => setObjectEdit({});
   const onNodeClick = (a, b) => {
     setObjectEdit(b);
-    console.log(b);
   };
   const onEdgeClick = (a, b) => {
     setObjectEdit(b);
-    console.log(b);
   };
 
   const onEdgeUpdate = (oldEdge, newConnection) =>
@@ -101,14 +78,24 @@ const MermaidFlow = () => {
         id: getId(),
         type,
         position,
-        data: { label: `${type} node` },
+        data: { label: `Added node` },
       };
 
       setNodes((nds) => nds.concat(newNode));
     },
     [reactFlowInstance]
   );
-
+  const DConAdd = useCallback(() => {
+    const newNode = {
+      id: getId(),
+      data: { label: "Added node" },
+      position: {
+        x: Math.random() * window.innerWidth - 100,
+        y: Math.random() * window.innerHeight,
+      },
+    };
+    setNodes((nds) => nds.concat(newNode));
+  }, [setNodes]);
   const onDragStart = (event, nodeType) => {
     event.dataTransfer.setData("application/reactflow", nodeType);
     event.dataTransfer.effectAllowed = "move";
@@ -140,6 +127,9 @@ const MermaidFlow = () => {
               title="drag and drop"
               className="dndnode"
               onDragStart={(event) => onDragStart(event, "default")}
+              onClick={(e) => {
+                if (e.detail == 2) DConAdd();
+              }}
               draggable
             >
               Add Node
@@ -159,16 +149,15 @@ const MermaidFlow = () => {
           <li>
             {objectEdit.data && (
               <>
-                <div  >
-                  <input className="textbox"
-                  placeholder="Nodes Value..."
+                <div>
+                  <input
+                    className="textbox"
+                    placeholder="Nodes Value..."
                     value={objectEdit.data.label}
                     onChange={(e) => {
                       const newObjectEdit = objectEdit;
                       newObjectEdit.data.label = e.target.value;
-
                       setObjectEdit({ ...newObjectEdit });
-
                       const newNotes = nodes.map((item) => {
                         if (item.id === objectEdit.id) {
                           const newItem = item;
@@ -180,21 +169,23 @@ const MermaidFlow = () => {
                       setNodes(newNotes);
                     }}
                   />
+                  <IconContext.Provider value={{ className: "react-icons" }}>
+                    <VscSettings onClick={() => setLgShow(true)} />
+                  </IconContext.Provider>
                 </div>
               </>
             )}
-            
           </li>
           <li>
-          <div  ></div>
+            <div></div>
           </li>
           <li>
             {objectEdit.source && objectEdit.target && (
               <>
                 <div>
-                  {console.log(objectEdit.label)}
-                  <input className="textbox"
-                  placeholder="Edges Value..."
+                  <input
+                    className="textbox"
+                    placeholder="Edges Value..."
                     value={objectEdit.label}
                     onChange={(e) => {
                       const newObjectEdit = objectEdit;
@@ -215,13 +206,14 @@ const MermaidFlow = () => {
                       setEdges(newEdges);
                     }}
                   />
+                  <IconContext.Provider value={{ className: "react-icons" }}>
+                    <VscSettings onClick={() => setLgShow(true)} />
+                  </IconContext.Provider>
                 </div>
               </>
             )}
           </li>
-          <li> 
-          
-          </li>
+          <li></li>
         </ul>
       </div>
       <div className="dndflow">
@@ -245,15 +237,33 @@ const MermaidFlow = () => {
             >
               <Controls />
               <Background color="#aaa" gap={16} />
-              
             </ReactFlow>
           </div>
-          
+
           <ToastContainer />
-        
         </ReactFlowProvider>
+        <Modal
+          size="sm"
+          show={lgShow}
+          onHide={() => setLgShow(false)}
+          aria-labelledby="example-modal-sizes-title-lg"
+        >
+          <ModalHeader>
+            {" "}
+            <Modal.Title>Settings</Modal.Title>
+            <a href="#">
+              <GiCancel onClick={() => setLgShow(false)} />
+            </a>
+          </ModalHeader>
+          <Modal.Body>
+            <div></div>
+            <div>
+              <img src={require("./construction.gif")} />
+            </div>
+            <div>The under construction ;)</div>
+          </Modal.Body>
+        </Modal>
       </div>
-      
     </div>
   );
 };
