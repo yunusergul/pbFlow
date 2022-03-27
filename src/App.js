@@ -62,18 +62,6 @@ const MermaidFlow = () => {
     []
   );
 
-  const deleteEdge = (id) => {
-    console.log("tık ve id:" + id);
-    const newEdges = edges;
-    console.log(newEdges);
-    edges.forEach((e, i) => {
-      if (e.id === id) {
-        delete newEdges[i];
-      }
-    });
-    setEdges(newEdges);
-    setObjectEdit({});
-  };
   const onPaneClick = () => setObjectEdit({});
   const onNodeClick = (a, b) => {
     setObjectEdit(b);
@@ -144,7 +132,7 @@ const MermaidFlow = () => {
       .then(notify("Mermaid code copied to clipboard"));
   }
   return (
-    <>
+    <div className="panelF">
       <div>
         <ul>
           <li>
@@ -171,8 +159,9 @@ const MermaidFlow = () => {
           <li>
             {objectEdit.data && (
               <>
-                <div>
-                  <input
+                <div  >
+                  <input className="textbox"
+                  placeholder="Nodes Value..."
                     value={objectEdit.data.label}
                     onChange={(e) => {
                       const newObjectEdit = objectEdit;
@@ -194,6 +183,7 @@ const MermaidFlow = () => {
                 </div>
               </>
             )}
+            
           </li>
           <li>
           <div  ></div>
@@ -203,7 +193,8 @@ const MermaidFlow = () => {
               <>
                 <div>
                   {console.log(objectEdit.label)}
-                  <input
+                  <input className="textbox"
+                  placeholder="Edges Value..."
                     value={objectEdit.label}
                     onChange={(e) => {
                       const newObjectEdit = objectEdit;
@@ -224,19 +215,13 @@ const MermaidFlow = () => {
                       setEdges(newEdges);
                     }}
                   />
-
-                  <button
-                    onClick={() => {
-                      deleteEdge(objectEdit.id);
-                    }}
-                  >
-                    sil
-                  </button>
                 </div>
               </>
             )}
           </li>
-          <li> </li>
+          <li> 
+          
+          </li>
         </ul>
       </div>
       <div className="dndflow">
@@ -260,13 +245,16 @@ const MermaidFlow = () => {
             >
               <Controls />
               <Background color="#aaa" gap={16} />
+              
             </ReactFlow>
           </div>
+          
           <ToastContainer />
+        
         </ReactFlowProvider>
       </div>
       
-    </>
+    </div>
   );
 };
 
