@@ -117,6 +117,7 @@ const MermaidFlow = () => {
     navigator.clipboard
       .writeText(a)
       .then(notify("Mermaid code copied to clipboard"));
+      console.log(a);
   }
   return (
     <div className="panelF">
